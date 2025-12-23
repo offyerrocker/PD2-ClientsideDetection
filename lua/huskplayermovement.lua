@@ -14,9 +14,7 @@ local math_point_on_line = math.point_on_line
 local table_insert = table.insert
 local table_remove = table.remove
 
-local post_init_original = HuskPlayerMovement.post_init
-Hooks:OverrideFunction(HuskPlayerMovement,"post_init",function(self)
-	post_init_original(self)
+Hooks:PostHook(HuskPlayerMovement,"post_init","clientsidedetection_huskplayermovement_postinit",function(self)
 	self._attention_handler:setup_attention_positions(self._m_detect_pos, self._m_newest_pos)
 end)
 
@@ -28,12 +26,9 @@ Hooks:OverrideFunction(HuskPlayerMovement,"m_head_pos",function(self)
 	return self._m_detect_pos
 end)
 
-local init_original = HuskPlayerMovement.init
-Hooks:OverrideFunction(HuskPlayerMovement,"init",function(self, unit)
-
+Hooks:PreHook(HuskPlayerMovement,"init","clientsidedetection_huskplayermovement_init",function(self, unit)
+	-- this is a mod value, not vanilla
 	self._stand_detection_offset_z = mvec3_z(tweak_data.player.stances.default.standard.head.translation)
-
-	init_original(self, unit)
 end)
 
 Hooks:OverrideFunction(HuskPlayerMovement,"_calculate_m_pose",function(self)

@@ -795,10 +795,7 @@ Hooks:OverrideFunction(HuskCopBrain,"_destroy_all_detected_attention_object_data
 	self._detected_player_att_data = {}
 end)
 
-local clbk_death_original = HuskCopBrain.clbk_death
-Hooks:OverrideFunction(HuskCopBrain,"clbk_death",function(self, my_unit, damage_info)
-	clbk_death_original(self, my_unit, damage_info)
-
+Hooks:PostHook(HuskCopBrain,"clbk_death","clientsidedetection_huskcopbrain_clbkdeath",function(self, my_unit, damage_info)
 	self:_destroy_all_detected_attention_object_data()
 
 	self._detect_local_player = nil
