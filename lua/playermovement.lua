@@ -86,12 +86,3 @@ Hooks:OverrideFunction(PlayerMovement,"_calc_suspicion_ratio_and_sync",function(
 		end
 	end
 end)
-
-Hooks:OverrideFunction(PlayerMovement,"on_non_lethal_electrocution",function(self, )
-	self._state_data.non_lethal_electrocution = true
-
-	if alive(self._unit) then
-		self._unit:character_damage():on_tased(true)
-		self._unit:sound():say("s07x_sin", true)
-	end
-end)
