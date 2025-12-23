@@ -15,33 +15,33 @@ local table_insert = table.insert
 local table_remove = table.remove
 
 local post_init_original = HuskPlayerMovement.post_init
-function HuskPlayerMovement:post_init()
+Hooks:OverrideFunction(HuskPlayerMovement,"post_init",function(self)
 	post_init_original(self)
 	self._attention_handler:setup_attention_positions(self._m_detect_pos, self._m_newest_pos)
-end
+end)
 
-function HuskPlayerMovement:m_pos()
+Hooks:OverrideFunction(HuskPlayerMovement,"m_pos",function(self)
 	return self._m_newest_pos
-end
+end)
 
-function HuskPlayerMovement:m_head_pos()
+Hooks:OverrideFunction(HuskPlayerMovement,"m_head_pos",function(self)
 	return self._m_detect_pos
-end
+end)
 
 local init_original = HuskPlayerMovement.init
-function HuskPlayerMovement:init(unit)
+Hooks:OverrideFunction(HuskPlayerMovement,"init",function(self, unit)
 
 	self._stand_detection_offset_z = mvec3_z(tweak_data.player.stances.default.standard.head.translation)
 
 	init_original(self, unit)
-end
+end)
 
-function HuskPlayerMovement:_calculate_m_pose()
+Hooks:OverrideFunction(HuskPlayerMovement,"_calculate_m_pose",function(self)
 	mrot_look(self._m_head_rot, self._look_dir, math_up)
 	self._obj_head:m_position(self._m_head_pos)
-end
+end)
 
-function HuskPlayerMovement:sync_action_walk_nav_point(pos, speed, action, params)
+Hooks:OverrideFunction(HuskPlayerMovement,"sync_action_walk_nav_point",function(self, pos, speed, action, params)
 	if pos then
 		self:_update_real_pos(pos)
 	end
@@ -144,12 +144,12 @@ function HuskPlayerMovement:sync_action_walk_nav_point(pos, speed, action, param
 			self:force_start_moving()
 		end
 	end
-end
+end)
 
 local draw_sync_player_newest_pos = nil
 local draw_sync_player_detect_pos = nil
 
-function HuskPlayerMovement:_update_real_pos(new_pos, new_pose_code)
+Hooks:OverrideFunction(HuskPlayerMovement,"_update_real_pos",function(self, new_pos, new_pose_code)
 	local newest_pos = self._m_newest_pos
 	local detect_pos = self._m_detect_pos
 	local stand_pos = self._m_stand_pos
@@ -181,14 +181,14 @@ function HuskPlayerMovement:_update_real_pos(new_pos, new_pose_code)
 		local head_brush = Draw:brush(Color.yellow:with_alpha(0.5), 0.1)
 		head_brush:sphere(detect_pos, 15)
 	end
-end
+end)
 
-function HuskPlayerMovement:sync_action_change_pose(pose_code, pos)
+Hooks:OverrideFunction(HuskPlayerMovement,"sync_action_change_pose",function(self, pose_code, pos)
 	self._desired_pose_code = pose_code
 	self:_update_real_pos(pos, pose_code)
-end
+end)
 
-function HuskPlayerMovement:_update_air_time(t, dt)
+Hooks:OverrideFunction(HuskPlayerMovement,"_update_air_time",function(self, t, dt)
 	if self._in_air then
 		self._air_time = self._air_time or 0
 		self._air_time = self._air_time + dt
@@ -204,9 +204,9 @@ function HuskPlayerMovement:_update_air_time(t, dt)
 	else
 		self._air_time = 0
 	end
-end
+end)
 
-function HuskPlayerMovement:_update_zipline_sled(t, dt)
+Hooks:OverrideFunction(HuskPlayerMovement,"_update_zipline_sled",function(self, t, dt)
 	if self._zipline and self._zipline.attached then
 		local zipline = self._zipline and self._zipline.zipline_unit and self._zipline.zipline_unit:zipline()
 
@@ -219,7 +219,7 @@ function HuskPlayerMovement:_update_zipline_sled(t, dt)
 			zipline:update_and_get_pos_at_time_linear(math_clamp(t, 0, 1))
 		end
 	end
-end
+end)
 
 --[[local draw_player_newest_pos = nil
 local draw_player_detect_pos = nil

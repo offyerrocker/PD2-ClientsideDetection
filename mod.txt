@@ -2,9 +2,9 @@
 	"name" : "Clientside Detection Standalone",
 	"description" : "Makes detection in stealth client-side (Hoxi's standalone version from CRACKDOWN)\nChanges matchmaking key.",
 	"author" : "Hoxi/Offyerrocker",
-	"contact" : "",
+	"contact" : "Please contact Offyerrocker if you have questions. Hoxi no longer mods PAYDAY 2, so please do not bother her. https://modworkshop.net/mod/28285",
 	"blt_version" : 2,
-	"version" : "3",
+	"version" : "4",
 	"color" : "255 255 0",
 	"hooks" : [
 		{

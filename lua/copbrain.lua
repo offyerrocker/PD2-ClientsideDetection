@@ -47,7 +47,7 @@ CopBrain._NET_EVENTS = {
 	seeing_client = 1
 }
 
-function CopBrain:sync_net_event(event_id, peer)
+Hooks:OverrideFunction(CopBrain,"sync_net_event",function(self, event_id, peer)
 	local peer_id = peer:id()
 	local peer_unit = managers.criminals:character_unit_by_peer_id(peer_id)
 
@@ -191,9 +191,9 @@ function CopBrain:sync_net_event(event_id, peer)
 			att_obj_data.client_casing_detected = true
 		end
 	end
-end
+end)
 
-function CopBrain:on_nav_link_unregistered(element_id)
+Hooks:OverrideFunction(CopBrain,"on_nav_link_unregistered",function(self, element_id)
 	if self._logic_data.pathing_results then
 		local failed_search_ids = nil
 
@@ -242,9 +242,9 @@ function CopBrain:on_nav_link_unregistered(element_id)
 	end
 
 	self._current_logic._set_verified_paths(self._logic_data, verified_paths)
-end
+end)
 
-function CopBrain:convert_to_criminal(mastermind_criminal)
+Hooks:OverrideFunction(CopBrain,"convert_to_criminal",function(self, mastermind_criminal)
 	if self._alert_listen_key then
 		managers.groupai:state():remove_alert_listener(self._alert_listen_key)
 	else
@@ -333,13 +333,13 @@ function CopBrain:convert_to_criminal(mastermind_criminal)
 	self._unit:brain():action_request(action_data)
 	self._unit:sound():say("cn1", true, nil)
 	managers.network:session():send_to_peers_synched("sync_unit_converted", self._unit)
-end
+end)
 
-function CopBrain:clbk_pathing_results(search_id, path)
+Hooks:OverrideFunction(CopBrain,"clbk_pathing_results",function(self, search_id, path)
     self:_add_pathing_result(search_id, path)
-end
+end)
 
-function CopBrain:clbk_alarm_pager(ignore_this, data)
+Hooks:OverrideFunction(CopBrain,"clbk_alarm_pager",function(self, ignore_this, data)
 	local pager_data = self._alarm_pager_data
 	local clbk_id = pager_data.pager_clbk_id
 	pager_data.pager_clbk_id = nil
@@ -403,4 +403,4 @@ function CopBrain:clbk_alarm_pager(ignore_this, data)
 
 		managers.enemy:add_delayed_clbk(self._alarm_pager_data.pager_clbk_id, callback(self, self, "clbk_alarm_pager"), TimerManager:game():time() + call_delay)
 	end
-end
+end)

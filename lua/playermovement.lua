@@ -1,10 +1,10 @@
-function PlayerMovement:clbk_attention_notice_sneak(observer_unit, status, local_client_detection)
+Hooks:OverrideFunction(PlayerMovement,"clbk_attention_notice_sneak",function(self, observer_unit, status, local_client_detection)
 	if alive(observer_unit) then
 		self:on_suspicion(observer_unit, status, local_client_detection)
 	end
-end
+end)
 
-function PlayerMovement:on_suspicion(observer_unit, status, local_client_detection)
+Hooks:OverrideFunction(PlayerMovement,"on_suspicion",function(self, observer_unit, status, local_client_detection)
 	if Network:is_server() or local_client_detection then
 		self._suspicion_debug = self._suspicion_debug or {}
 		self._suspicion_debug[observer_unit:key()] = {
@@ -48,9 +48,9 @@ function PlayerMovement:on_suspicion(observer_unit, status, local_client_detecti
 	end
 
 	self:_feed_suspicion_to_hud()
-end
+end)
 
-function PlayerMovement:_calc_suspicion_ratio_and_sync(observer_unit, status, local_client_detection)
+Hooks:OverrideFunction(PlayerMovement,"_calc_suspicion_ratio_and_sync",function(self, observer_unit, status, local_client_detection)
 	local suspicion_sync = nil
 
 	if self._suspicion and status ~= true then
@@ -85,13 +85,13 @@ function PlayerMovement:_calc_suspicion_ratio_and_sync(observer_unit, status, lo
 			managers.network:session():send_to_peers_synched("suspicion", peer:id(), suspicion_sync)
 		end
 	end
-end
+end)
 
-function PlayerMovement:on_non_lethal_electrocution()
+Hooks:OverrideFunction(PlayerMovement,"on_non_lethal_electrocution",function(self, )
 	self._state_data.non_lethal_electrocution = true
 
 	if alive(self._unit) then
 		self._unit:character_damage():on_tased(true)
 		self._unit:sound():say("s07x_sin", true)
 	end
-end
+end)

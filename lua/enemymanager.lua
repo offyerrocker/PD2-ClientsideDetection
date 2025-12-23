@@ -6,7 +6,7 @@ local t_ins = table.insert
 local tmp_vec1 = Vector3()
 local world_g = World
 
-function EnemyManager:_update_queued_tasks(t, dt)
+Hooks:OverrideFunction(EnemyManager,"_update_queued_tasks",function(self, t, dt)
 	local i_asap_task, asap_task_t = nil
 
 	if managers.groupai:state():whisper_mode() then
@@ -59,9 +59,9 @@ function EnemyManager:_update_queued_tasks(t, dt)
 
 		clbk()
 	end
-end
+end)
 
-function EnemyManager:_update_gfx_lod()
+Hooks:OverrideFunction(EnemyManager,"_update_gfx_lod",function(self)
 	if self._gfx_lod_data.enabled and managers.navigation:is_data_ready() then
 		local player = managers.player:player_unit()
 		local pl_tracker, cam_pos, cam_fwd = nil
@@ -243,9 +243,9 @@ function EnemyManager:_update_gfx_lod()
 			end
 		end
 	end
-end
+end)
 
-function EnemyManager:get_nearby_medic(unit)
+Hooks:OverrideFunction(EnemyManager,"get_nearby_medic",function(self, unit)
 	if self:is_civilian(unit) then
 		return nil
 	end
@@ -265,9 +265,9 @@ function EnemyManager:get_nearby_medic(unit)
 	end
 
 	return nil
-end
+end)
 
-function EnemyManager:set_gfx_lod_enabled(state)
+Hooks:OverrideFunction(EnemyManager,"set_gfx_lod_enabled",function(self, state)
 	if state then
 		self._gfx_lod_data.enabled = state
 	elseif self._gfx_lod_data.enabled then
@@ -286,9 +286,9 @@ function EnemyManager:set_gfx_lod_enabled(state)
 			end
 		end
 	end
-end
+end)
 
-function EnemyManager:chk_any_unit_in_slotmask_visible(slotmask, cam_pos, cam_nav_tracker)
+Hooks:OverrideFunction(EnemyManager,"chk_any_unit_in_slotmask_visible",function(self, slotmask, cam_pos, cam_nav_tracker)
 	if self._gfx_lod_data.enabled and managers.navigation:is_data_ready() then
 		local entries = self._gfx_lod_data.entries
 		local units = entries.units
@@ -340,4 +340,4 @@ function EnemyManager:chk_any_unit_in_slotmask_visible(slotmask, cam_pos, cam_na
 			end
 		end
 	end
-end
+end)

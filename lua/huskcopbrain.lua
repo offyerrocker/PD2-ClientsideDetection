@@ -8,7 +8,7 @@ local tmp_vec1 = Vector3()
 local REACT_SCARED = AIAttentionObject.REACT_SCARED
 local REACT_SUSPICIOUS = AIAttentionObject.REACT_SUSPICIOUS
 
-function HuskCopBrain:post_init()
+Hooks:OverrideFunction(HuskCopBrain,"post_init",function(self)
 	local is_ally = self._unit:in_slot(16)
 	local is_cool = self._unit:movement():cool()
 	self._is_ally = is_ally
@@ -77,9 +77,9 @@ function HuskCopBrain:post_init()
 	self._detection = char_tweak.detection.ntl
 	self._visibility_slotmask = managers.slot:get_mask("AI_visibility")
 	self._detected_player_att_data = {}
-end
+end)
 
-function HuskCopBrain:sync_surrender(surrendered)
+Hooks:OverrideFunction(HuskCopBrain,"sync_surrender",function(self, surrendered)
 	if not self._converted then
 		if surrendered then
 			self._unit:base():set_slot(self._unit, 22)
@@ -89,9 +89,9 @@ function HuskCopBrain:sync_surrender(surrendered)
 	end
 
 	self._surrendered = surrendered
-end
+end)
 
-function HuskCopBrain:sync_converted()
+Hooks:OverrideFunction(HuskCopBrain,"sync_converted",function(self)
 	self._converted = true
 
 	if self._alert_listen_key then
@@ -114,9 +114,9 @@ function HuskCopBrain:sync_converted()
 	self._SO_access_str = SO_access_str
 	self._SO_access = managers.navigation:convert_access_flag(SO_access_str)
 	self._enemy_slotmask = managers.slot:get_mask("enemies")
-end
+end)
 
-function HuskCopBrain:update(unit, t, dt)
+Hooks:OverrideFunction(HuskCopBrain,"update",function(self, unit, t, dt)
 	if not self._post_init_complete then
 		return
 	end
@@ -164,17 +164,17 @@ function HuskCopBrain:update(unit, t, dt)
 			self._add_laser_t = nil
 		end
 	end
-end
+end)
 
-function HuskCopBrain:on_team_set(team_data)
+Hooks:OverrideFunction(HuskCopBrain,"on_team_set",function(self, team_data)
 	self._team = team_data
 
 	if self._unit:movement():cool() then
 		self._detect_local_player = true
 	end
-end
+end)
 
-function HuskCopBrain:on_cool_state_changed(state)
+Hooks:OverrideFunction(HuskCopBrain,"on_cool_state_changed",function(self, state)
 	if self._is_ally then
 		self._detect_local_player = state
 
@@ -218,9 +218,9 @@ function HuskCopBrain:on_cool_state_changed(state)
 	managers.groupai:state():add_alert_listener(self._alert_listen_key, callback(self, self, "on_alert"), alert_listen_filter, alert_types, self._unit:movement():m_head_pos())
 
 	self._detect_local_player = state
-end
+end)
 
-function HuskCopBrain:terminate_all_suspicion()
+Hooks:OverrideFunction(HuskCopBrain,"terminate_all_suspicion",function(self)
 	for u_key, u_data in pairs(self._detected_player_att_data) do
 		if u_data.uncover_progress then
 			u_data.uncover_progress = nil
@@ -229,9 +229,9 @@ function HuskCopBrain:terminate_all_suspicion()
 			u_data.unit:movement():on_suspicion(self._unit, false, true)
 		end
 	end
-end
+end)
 
-function HuskCopBrain:update_local_player_detection(t)
+Hooks:OverrideFunction(HuskCopBrain,"update_local_player_detection",function(self, t)
 	local player = managers.player:player_unit()
 
 	if not player then
@@ -538,9 +538,9 @@ function HuskCopBrain:update_local_player_detection(t)
 	end
 
 	return player_attention_data
-end
+end)
 
-function HuskCopBrain:_create_detected_player_data(t, u_key, attention_info, settings, visible_data)
+Hooks:OverrideFunction(HuskCopBrain,"_create_detected_player_data",function(self, t, u_key, attention_info, settings, visible_data)
 	attention_info.handler:add_listener("detect_" .. tostring(self._unit:key()), callback(self, self, "on_detected_attention_obj_modified"))
 
 	local att_unit = attention_info.unit
@@ -567,9 +567,9 @@ function HuskCopBrain:_create_detected_player_data(t, u_key, attention_info, set
 	end
 
 	return new_entry
-end
+end)
 
-function HuskCopBrain:update_local_player_suspicion(t, attention_info)
+Hooks:OverrideFunction(HuskCopBrain,"update_local_player_suspicion",function(self, t, attention_info)
 	local function _exit_func()
 		attention_info.unit:movement():on_uncovered(self._unit)
 
@@ -659,9 +659,9 @@ function HuskCopBrain:update_local_player_suspicion(t, attention_info)
 			attention_info.last_suspicion_t = t
 		end
 	end
-end
+end)
 
-function HuskCopBrain:update_local_player_suspicion_decay(t)
+Hooks:OverrideFunction(HuskCopBrain,"update_local_player_suspicion_decay",function(self, t)
 	for _, u_data in pairs(self._detected_player_att_data) do
 		if u_data.uncover_progress and u_data.last_suspicion_t ~= t then
 			local dt = t - u_data.last_suspicion_t
@@ -697,9 +697,9 @@ function HuskCopBrain:update_local_player_suspicion_decay(t)
 			end
 		end
 	end
-end
+end)
 
-function HuskCopBrain:on_detected_attention_obj_modified(modified_u_key)
+Hooks:OverrideFunction(HuskCopBrain,"on_detected_attention_obj_modified",function(self, modified_u_key)
 	local attention_info = self._detected_player_att_data[modified_u_key]
 
 	if not attention_info then
@@ -753,9 +753,9 @@ function HuskCopBrain:on_detected_attention_obj_modified(modified_u_key)
 			managers.groupai:state():on_criminal_suspicion_progress(attention_info.unit, self._unit, nil)
 		end
 	end
-end
+end)
 
-function HuskCopBrain:_destroy_detected_attention_object_data(attention_info)
+Hooks:OverrideFunction(HuskCopBrain,"_destroy_detected_attention_object_data",function(self, attention_info)
 	attention_info.handler:remove_listener("detect_" .. tostring(self._unit:key()))
 
 	if not attention_info.identified and attention_info.settings.notice_clbk then
@@ -771,9 +771,9 @@ function HuskCopBrain:_destroy_detected_attention_object_data(attention_info)
 	end
 
 	self._detected_player_att_data[attention_info.u_key] = nil
-end
+end)
 
-function HuskCopBrain:_destroy_all_detected_attention_object_data()
+Hooks:OverrideFunction(HuskCopBrain,"_destroy_all_detected_attention_object_data",function(self)
 	if self._detected_player_att_data then
 		for u_key, attention_info in pairs(self._detected_player_att_data) do
 			attention_info.handler:remove_listener("detect_" .. tostring(self._unit:key()))
@@ -793,18 +793,18 @@ function HuskCopBrain:_destroy_all_detected_attention_object_data()
 	end
 
 	self._detected_player_att_data = {}
-end
+end)
 
 local clbk_death_original = HuskCopBrain.clbk_death
-function HuskCopBrain:clbk_death(my_unit, damage_info)
+Hooks:OverrideFunction(HuskCopBrain,"clbk_death",function(self, my_unit, damage_info)
 	clbk_death_original(self, my_unit, damage_info)
 
 	self:_destroy_all_detected_attention_object_data()
 
 	self._detect_local_player = nil
-end
+end)
 
-function HuskCopBrain:pre_destroy()
+Hooks:OverrideFunction(HuskCopBrain,"pre_destroy",function(self)
 	self:_destroy_all_detected_attention_object_data()
 	self._unit:movement():synch_attention()
 
@@ -819,8 +819,8 @@ function HuskCopBrain:pre_destroy()
 	if self._weapon_laser_on then
 		self:sync_net_event(self._NET_EVENTS.weapon_laser_off)
 	end
-end
+end)
 
-function HuskCopBrain:_send_client_detection_net_event(event_id)
+Hooks:OverrideFunction(HuskCopBrain,"_send_client_detection_net_event",function(self, event_id)
 	managers.network:session():send_to_peer_synched(managers.network:session():peer(1), "sync_unit_event_id_16", self._unit, "brain", event_id)
-end
+end)

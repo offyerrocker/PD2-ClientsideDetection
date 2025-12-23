@@ -1,4 +1,4 @@
-function PlayerCarry:_upd_attention()
+Hooks:OverrideFunction(PlayerCarry,"_upd_attention",function(self)
 	if managers.groupai:state():whisper_mode() and not self._state_data.ducking then
 		local preset = {
 			"pl_friend_combatant_cbt",
@@ -11,4 +11,4 @@ function PlayerCarry:_upd_attention()
 	else
 		PlayerCarry.super._upd_attention(self)
 	end
-end
+end)
