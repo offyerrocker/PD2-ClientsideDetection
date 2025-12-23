@@ -247,28 +247,6 @@ Hooks:OverrideFunction(EnemyManager,"_update_gfx_lod",function(self)
 	end
 end)
 
-Hooks:OverrideFunction(EnemyManager,"get_nearby_medic",function(self, unit)
-	if self:is_civilian(unit) then
-		return nil
-	end
-
-	local t = Application:time()
-	local enemies = world_g:find_units_quick(unit, "sphere", unit:position(), tweak_data.medic.radius, managers.slot:get_mask("enemies"))
-
-	for _, enemy in ipairs(enemies) do
-		if enemy:base():has_tag("medic") and enemy:character_damage()._heal_cooldown_t then
-			local cooldown = tweak_data.medic.cooldown
-			cooldown = managers.modifiers:modify_value("MedicDamage:CooldownTime", cooldown)
-
-			if t >= enemy:character_damage()._heal_cooldown_t + cooldown then
-				return enemy
-			end
-		end
-	end
-
-	return nil
-end)
-
 Hooks:OverrideFunction(EnemyManager,"set_gfx_lod_enabled",function(self, state)
 	if state then
 		self._gfx_lod_data.enabled = state

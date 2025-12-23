@@ -193,57 +193,6 @@ Hooks:OverrideFunction(CopBrain,"sync_net_event",function(self, event_id, peer)
 	end
 end)
 
-Hooks:OverrideFunction(CopBrain,"on_nav_link_unregistered",function(self, element_id)
-	if self._logic_data.pathing_results then
-		local failed_search_ids = nil
-
-		for path_name, path in pairs(self._logic_data.pathing_results) do
-			if type(path) == "table" and path[1] and type(path[1]) ~= "table" then
-				for i, nav_point in ipairs(path) do
-					if not nav_point.x and nav_point.script_data and nav_point:script_data().element._id == element_id then
-						failed_search_ids = failed_search_ids or {}
-						failed_search_ids[path_name] = true
-
-						break
-					end
-				end
-			end
-		end
-
-		if failed_search_ids then
-			for search_id, _ in pairs(failed_search_ids) do
-				self._logic_data.pathing_results[search_id] = "failed"
-			end
-		end
-	end
-
-	local paths = self._current_logic._get_all_paths and self._current_logic._get_all_paths(self._logic_data)
-
-	if not paths then
-		return
-	end
-
-	local verified_paths = {}
-
-	for path_name, path in pairs(paths) do
-		local path_is_ok = true
-
-		for i, nav_point in ipairs(path) do
-			if not nav_point.x and nav_point.script_data and nav_point:script_data().element._id == element_id then
-				path_is_ok = false
-
-				break
-			end
-		end
-
-		if path_is_ok then
-			verified_paths[path_name] = path
-		end
-	end
-
-	self._current_logic._set_verified_paths(self._logic_data, verified_paths)
-end)
-
 Hooks:OverrideFunction(CopBrain,"convert_to_criminal",function(self, mastermind_criminal)
 	if self._alert_listen_key then
 		managers.groupai:state():remove_alert_listener(self._alert_listen_key)
