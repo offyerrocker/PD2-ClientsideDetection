@@ -16,7 +16,6 @@ local table_remove = table.remove
 
 Hooks:PostHook(HuskPlayerMovement,"post_init","clientsidedetection_huskplayermovement_postinit",function(self)
 	self._attention_handler:setup_attention_positions(self._m_detect_pos, self._m_newest_pos)
-	_G.foo1 = self
 	
 	-- disable detection calculation of clients
 	self._attention_handler:set_attention(nil)

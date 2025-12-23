@@ -26,7 +26,7 @@ Hooks:OverrideFunction(HuskCopBrain,"post_init",function(self)
 	self._unit:character_damage():add_listener("HuskCopBrain_death" .. tostring(self._unit:key()), {
 		"death"
 	}, callback(self, self, "clbk_death"))
-	self:_setup_fake_attention_handler() -- 240.3
+	self:_setup_fake_attention_handler() -- U240.3
 
 	self._post_init_complete = true
 	
