@@ -52,30 +52,7 @@ Hooks:OverrideFunction(HuskPlayerMovement,"sync_action_walk_nav_point",function(
 			pos = mvec3_cpy(self._m_pos)
 		end
 	end
-
-	if Network:is_server() then
-		if not self._pos_reservation then
-			self._pos_reservation = {
-				radius = 100,
-				position = mvec3_cpy(pos),
-				filter = self._pos_rsrv_id
-			}
-			self._pos_reservation_slow = {
-				radius = 100,
-				position = mvec3_cpy(pos),
-				filter = self._pos_rsrv_id
-			}
-
-			managers.navigation:add_pos_reservation(self._pos_reservation)
-			managers.navigation:add_pos_reservation(self._pos_reservation_slow)
-		else
-			self._pos_reservation.position = mvec3_cpy(pos)
-
-			managers.navigation:move_pos_rsrv(self._pos_reservation)
-			self:_upd_slow_pos_reservation()
-		end
-	end
-
+	
 	local can_add = true
 
 	if not params.force and path_len > 0 then
