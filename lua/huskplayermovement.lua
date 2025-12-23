@@ -32,6 +32,7 @@ Hooks:PreHook(HuskPlayerMovement,"init","clientsidedetection_huskplayermovement_
 end)
 
 Hooks:OverrideFunction(HuskPlayerMovement,"_calculate_m_pose",function(self)
+	-- remove the detection code
 	mrot_look(self._m_head_rot, self._look_dir, math_up)
 	self._obj_head:m_position(self._m_head_pos)
 end)

@@ -332,7 +332,6 @@ Hooks:OverrideFunction(CopBrain,"convert_to_criminal",function(self, mastermind_
 
 	self._unit:brain():action_request(action_data)
 	self._unit:sound():say("cn1", true, nil)
-	managers.network:session():send_to_peers_synched("sync_unit_converted", self._unit)
 end)
 
 Hooks:OverrideFunction(CopBrain,"clbk_pathing_results",function(self, search_id, path)

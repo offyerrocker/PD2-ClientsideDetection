@@ -4,6 +4,7 @@ Hooks:OverrideFunction(PlayerMovement,"clbk_attention_notice_sneak",function(sel
 	end
 end)
 
+-- completely vanilla detection code, with the exception of the third argument and corresponding check
 Hooks:OverrideFunction(PlayerMovement,"on_suspicion",function(self, observer_unit, status, local_client_detection)
 	if Network:is_server() or local_client_detection then
 		self._suspicion_debug = self._suspicion_debug or {}
@@ -42,7 +43,7 @@ Hooks:OverrideFunction(PlayerMovement,"on_suspicion",function(self, observer_uni
 			return
 		end
 
-		self:_calc_suspicion_ratio_and_sync(observer_unit, visible_status, local_client_detection)
+		self:_calc_suspicion_ratio_and_sync(observer_unit, visible_status, local_client_detection) -- also passes the local detection flag
 	else
 		self._suspicion_ratio = status
 	end
@@ -50,6 +51,7 @@ Hooks:OverrideFunction(PlayerMovement,"on_suspicion",function(self, observer_uni
 	self:_feed_suspicion_to_hud()
 end)
 
+-- again vanilla except for local detection check
 Hooks:OverrideFunction(PlayerMovement,"_calc_suspicion_ratio_and_sync",function(self, observer_unit, status, local_client_detection)
 	local suspicion_sync = nil
 

@@ -15,61 +15,21 @@ Hooks:OverrideFunction(HuskCopBrain,"post_init",function(self)
 
 	self._alert_listen_key = "HuskCopBrain" .. tostring(self._unit:key())
 
-	local alert_listen_filter, alert_types = nil
-
-	if is_ally then
-		alert_listen_filter = managers.groupai:state():get_unit_type_filter("combatant")
-		alert_types = {
-			explosion = true,
-			fire = true,
-			aggression = true,
-			bullet = true
-		}
-
-		if is_cool then
-			self._detect_local_player = true
-		end
-	else
-		if not managers.enemy:is_civilian(self._unit) then
-			self._enemy_slotmask = managers.slot:get_mask("criminals")
-		end
-
-		if is_cool then
-			self._detect_local_player = true
-
-			alert_listen_filter = managers.groupai:state():get_unit_type_filter("criminals_enemies_civilians")
-			alert_types = {
-				vo_distress = true,
-				fire = true,
-				bullet = true,
-				vo_intimidate = true,
-				explosion = true,
-				footstep = true,
-				aggression = true,
-				vo_cbt = true
-			}
-		else
-			alert_listen_filter = managers.groupai:state():get_unit_type_filter("criminal")
-			alert_types = {
-				explosion = true,
-				fire = true,
-				aggression = true,
-				bullet = true
-			}
-		end
+	if is_cool then
+		self._detect_local_player = true
 	end
-
-	managers.groupai:state():add_alert_listener(self._alert_listen_key, callback(self, self, "on_alert"), alert_listen_filter, alert_types, self._unit:movement():m_head_pos())
-
-	self._last_alert_t = 0
-
+	
+	if not (is_ally or managers.enemy:is_civilian(self._unit)) then
+		self._enemy_slotmask = managers.slot:get_mask("criminals")
+	end
+	
 	self._unit:character_damage():add_listener("HuskCopBrain_death" .. tostring(self._unit:key()), {
 		"death"
 	}, callback(self, self, "clbk_death"))
+	self:_setup_fake_attention_handler() -- 240.3
 
 	self._post_init_complete = true
-	self._surrendered = false
-
+	
 	local char_tweak = tweak_data.character[self._unit:base()._tweak_table]
 	local SO_access_str = char_tweak.access
 	self._SO_access_str = SO_access_str
@@ -799,6 +759,8 @@ Hooks:PostHook(HuskCopBrain,"clbk_death","clientsidedetection_huskcopbrain_clbkd
 	self:_destroy_all_detected_attention_object_data()
 
 	self._detect_local_player = nil
+	
+--	self._unit:movement():synch_attention() -- 240.3 set_attention -> synch_attention()
 end)
 
 Hooks:OverrideFunction(HuskCopBrain,"pre_destroy",function(self)
@@ -814,7 +776,7 @@ Hooks:OverrideFunction(HuskCopBrain,"pre_destroy",function(self)
 	end
 
 	if self._weapon_laser_on then
-		self:sync_net_event(self._NET_EVENTS.weapon_laser_off)
+		self:disable_weapon_laser()
 	end
 end)
 

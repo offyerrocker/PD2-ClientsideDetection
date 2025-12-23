@@ -22,7 +22,7 @@ Hooks:OverrideFunction(EnemyManager,"_update_queued_tasks",function(self, t, dt)
 		end
 	else
 		self._queue_buffer = self._queue_buffer + dt
-		local tick_rate = tweak_data.group_ai.ai_tick_rate
+		local tick_rate = self._tick_rate
 
 		if tick_rate <= self._queue_buffer then
 			for i_task, task_data in ipairs(self._queued_tasks) do
@@ -45,6 +45,8 @@ Hooks:OverrideFunction(EnemyManager,"_update_queued_tasks",function(self, t, dt)
 
 		if #self._queued_tasks == 0 then
 			self._queue_buffer = 0
+		else
+			self._queue_buffer = math.min(self._queue_buffer, tick_rate * #self._queued_tasks)
 		end
 	end
 
