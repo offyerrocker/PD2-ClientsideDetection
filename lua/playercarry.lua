@@ -9,6 +9,6 @@ Hooks:OverrideFunction(PlayerCarry,"_upd_attention",function(self,...)
 
 		self._ext_movement:set_attention_settings(preset)
 	else
-		PlayerCarry.super._upd_attention(self,...)
+		return PlayerCarry.super._upd_attention(self,...)
 	end
 end)
