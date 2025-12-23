@@ -38,6 +38,10 @@
 		{
 			"hook_id" : "lib/network/matchmaking/networkmatchmakingsteam",
 			"script_path" : "lua/networkmatchmakingsteam.lua"
+		},
+		{
+			"hook_id" : "lib/network/matchmaking/networkmatchmakingepic",
+			"script_path" : "lua/networkmatchmakingepic.lua"
 		}
 	]
 }
