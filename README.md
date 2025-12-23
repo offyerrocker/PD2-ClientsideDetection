@@ -5,3 +5,11 @@ A mod for PAYDAY 2 that performs detection checks only on the client side instea
 Original mod by Hoxi. (Huge props!)
 
 New version developed/maintained by Offyerrocker.
+
+
+
+Todo:
+- vehicle detection (status unknown)
+- bag detection (status unknown)
+- camera detection (still hostside detection)
+- networked console invis utility (for verifying clientside detection)
