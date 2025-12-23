@@ -88,3 +88,60 @@ Hooks:OverrideFunction(PlayerMovement,"_calc_suspicion_ratio_and_sync",function(
 		end
 	end
 end)
+
+-- set detection changes locally
+-- but don't send them to host as client
+Hooks:OverrideFunction(PlayerMovement,"set_attention_settings",function(self,settings_list)
+	local changes = self._attention_handler:chk_settings_diff(settings_list)
+
+	if not changes then
+		return
+	end
+
+	local all_attentions = nil
+
+	local function _add_attentions_to_all(names)
+		for _, setting_name in ipairs(names) do
+			local setting_desc = tweak_data.attention.settings[setting_name]
+
+			if setting_desc then
+				all_attentions = all_attentions or {}
+				local setting = self:_create_attention_setting_from_descriptor(setting_desc, setting_name)
+				all_attentions[setting_name] = setting
+			else
+				debug_pause_unit(self._unit, "[PlayerMovement:set_attention_settings] invalid setting", setting_name, self._unit)
+			end
+		end
+	end
+
+	if changes.added then
+		_add_attentions_to_all(changes.added)
+	end
+
+	if changes.maintained then
+		_add_attentions_to_all(changes.maintained)
+	end
+
+	self._attention_handler:set_settings_set(all_attentions)
+
+	-- change: don't sync attention settings to host!
+	-- that reboots the attention settings for the player husk detection object on the host side,
+	-- which is exactly what we are trying to avoid
+	if false and Network:is_client() then
+		if changes.added then
+			for _, id in ipairs(changes.added) do
+				local index = tweak_data.attention:get_attention_index(id)
+
+				self._unit:network():send_to_host("set_attention_enabled", index, true)
+			end
+		end
+
+		if changes.removed then
+			for _, id in ipairs(changes.removed) do
+				local index = tweak_data.attention:get_attention_index(id)
+
+				self._unit:network():send_to_host("set_attention_enabled", index, false)
+			end
+		end
+	end
+end)
