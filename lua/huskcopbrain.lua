@@ -37,6 +37,8 @@ Hooks:OverrideFunction(HuskCopBrain,"post_init",function(self)
 	self._detection = char_tweak.detection.ntl
 	self._visibility_slotmask = managers.slot:get_mask("AI_visibility")
 	self._detected_player_att_data = {}
+	
+	self._unit:set_extension_update_enabled(Idstring("brain"), true)
 end)
 
 Hooks:OverrideFunction(HuskCopBrain,"sync_surrender",function(self, surrendered)

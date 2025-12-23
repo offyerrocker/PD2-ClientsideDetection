@@ -16,6 +16,7 @@ local table_remove = table.remove
 
 Hooks:PostHook(HuskPlayerMovement,"post_init","clientsidedetection_huskplayermovement_postinit",function(self)
 	self._attention_handler:setup_attention_positions(self._m_detect_pos, self._m_newest_pos)
+	_G.foo1 = self
 end)
 
 Hooks:OverrideFunction(HuskPlayerMovement,"m_pos",function(self)
@@ -119,8 +120,8 @@ Hooks:OverrideFunction(HuskPlayerMovement,"sync_action_walk_nav_point",function(
 	end
 end)
 
-local draw_sync_player_newest_pos = nil
-local draw_sync_player_detect_pos = nil
+local draw_sync_player_newest_pos = true
+local draw_sync_player_detect_pos = true
 
 Hooks:OverrideFunction(HuskPlayerMovement,"_update_real_pos",function(self, new_pos, new_pose_code)
 	local newest_pos = self._m_newest_pos
