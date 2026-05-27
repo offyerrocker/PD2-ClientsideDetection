@@ -8,6 +8,10 @@
 	"color" : "255 255 0",
 	"hooks" : [
 		{
+			"hook_id" : "lib/managers/playermanager",
+			"script_path" : "lua/playermanager.lua"
+		},
+		{
 			"hook_id" : "lib/tweak_data/attentiontweakdata",
 			"script_path" : "lua/attentiontweakdata.lua"
 		},
@@ -18,6 +22,10 @@
 		{
 			"hook_id" : "lib/units/props/carrydata",
 			"script_path" : "lua/carrydata.lua"
+		},
+		{
+			"hook_id" : "lib/units/props/securitycamera",
+			"script_path" : "lua/securitycamera.lua"
 		},
 		{
 			"hook_id" : "lib/units/enemies/cop/copbrain",
