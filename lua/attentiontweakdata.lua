@@ -106,4 +106,26 @@ Hooks:PostHook(AttentionTweakData, "init", "cd_att", function(self, tweakdata)
 		filter = "law_enforcer"
 	}
 	self.settings.pl_foe_non_combatant_cbt_stand.relation = nil
+	
+	-- no reaction for other players
+	--[[
+	self.settings.pl_clientside_husk = {
+		max_range = 1000,
+		reaction = "REACT_IDLE",
+		notice_delay_mul = 1,
+		relation = "friend",
+		filter = "combatant",
+		notice_requires_FOV = false,
+		verification_interval = 4,
+		release_delay = 3,
+		duration = {
+			2,
+			5
+		},
+		pause = {
+			15,
+			25
+		}
+	}
+	--]]
 end)
