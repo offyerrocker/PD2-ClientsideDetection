@@ -16,6 +16,14 @@
 			"script_path" : "lua/attentiontweakdata.lua"
 		},
 		{
+			"hook_id" : "lib/units/props/aiattentionobject",
+			"script_path" : "lua/aiattentionobject.lua"
+		},
+		{
+			"hook_id" : "lib/units/characters/characterattentionobject",
+			"script_path" : "lua/characterattentionobject.lua"
+		},
+		{
 			"hook_id" : "lib/managers/enemymanager",
 			"script_path" : "lua/enemymanager.lua"
 		},

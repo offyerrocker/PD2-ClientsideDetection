@@ -1,3 +1,8 @@
+-- currently:
+-- on the host side, cameras detect host but not clients
+-- on the client side, cameras do not detect anything
+
+
 do return end -- needs testing
 
 SecurityCamera._NET_EVENTS = {
