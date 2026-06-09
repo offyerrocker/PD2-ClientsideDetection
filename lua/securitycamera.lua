@@ -1,3 +1,6 @@
+-- currently:
+-- on the host side, cameras detect host but not clients
+-- on the client side, cameras do not detect anything
 
 SecurityCamera._NET_EVENTS = {
 	camera_enabled_state_off = 15,
