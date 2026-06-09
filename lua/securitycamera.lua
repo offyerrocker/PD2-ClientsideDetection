@@ -1,6 +1,9 @@
-do return end -- needs testing
 
 SecurityCamera._NET_EVENTS = {
+	camera_enabled_state_off = 15,
+	camera_enabled_state_on = 14,
+	
+	-- below is vanilla
 	deactivate_tape_loop = 13,
 	request_start_tape_loop_2 = 12,
 	request_start_tape_loop_1 = 11,
@@ -16,6 +19,47 @@ SecurityCamera._NET_EVENTS = {
 	sound_off = 1
 }
 
+Hooks:PostHook(SecurityCamera,"set_update_enabled","clientsidedetection_setcameraupdateenabled",function(self,state)
+	if Network:is_server() then
+		if state then
+			self:_send_net_event(self._NET_EVENTS.camera_enabled_state_off)
+		else
+			self:_send_net_event(self._NET_EVENTS.camera_enabled_state_on)
+		end
+	end
+end)
+
+Hooks:OverrideFunction(SecurityCamera,"sync_net_event",function(self,event_id)
+	local net_events = self._NET_EVENTS
+
+	-- modded changes begin
+	if event_id == net_events.camera_enabled_state_on then
+		self:set_update_enabled(true)
+	elseif event_id == net_events.camera_enabled_state_off then
+		self:set_update_enabled(false)
+	-- modded changes end
+	elseif net_events.suspicion_1 <= event_id and event_id <= net_events.suspicion_6 then
+		local suspicion_lvl = (event_id - net_events.suspicion_1 + 1) / 6
+
+		self:_set_suspicion_sound(suspicion_lvl)
+	elseif event_id == net_events.sound_off then
+		self:_stop_all_sounds()
+	elseif event_id == net_events.alarm_start then
+		self:_sound_the_alarm()
+	elseif event_id == net_events.start_tape_loop_1 then
+		self:_start_tape_loop_by_upgrade_level(1)
+	elseif event_id == net_events.start_tape_loop_2 then
+		self:_start_tape_loop_by_upgrade_level(2)
+	elseif event_id == net_events.request_start_tape_loop_1 then
+		self:_request_start_tape_loop_by_upgrade_level(1)
+	elseif event_id == net_events.request_start_tape_loop_2 then
+		self:_request_start_tape_loop_by_upgrade_level(2)
+	elseif event_id == net_events.deactivate_tape_loop then
+		self:_deactivate_tape_loop()
+	end
+end)
+
+do return end -- needs testing
 
 
 Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
