@@ -22,13 +22,51 @@ SecurityCamera._NET_EVENTS = {
 	sound_off = 1
 }
 
-Hooks:PostHook(SecurityCamera,"set_update_enabled","clientsidedetection_setcameraupdateenabled",function(self,state)
+Hooks:PostHook(SecurityCamera,"set_detection_enabled","clientsidedetection_setcameraupdateenabled",function(self,state,settings,mission_element)
 	if Network:is_server() then
+		if settings then 
+			-- serialize and send detection values
+			
+			local function sformat(value,precision)
+				if not value then 
+					return ""
+				end
+				
+				if precision and precision > 0 then
+					return string.format("%0." .. math.floor(precision) .. "f",value)
+				end
+				
+				return string.format("%i",value)
+			end
+			
+			local id = unit:id()
+			if id ~= -1 then
+				local div_char = "|"
+				local data_str = (
+					sformat(id,0) .. div_char .. 
+					sformat(self._NET_EVENTS.camera_enabled_state_on,0) .. div_char .. 
+					sformat(settings.yaw,1) .. div_char .. 
+					sformat(settings.pitch,1) ..  div_char .. 
+					sformat(settings.fov,1) .. div_char .. 
+					sformat(settings.detection_range,1) .. div_char .. 
+					sformat(settings.suspicion_range,1) .. div_char .. 
+					sformat(settings.detection_delay and settings.detection_delay.detection_delay_min,1) .. div_char .. 
+					sformat(settings.detection_delay and settings.detection_delay.detection_delay_max,1) .. div_char
+				)
+				
+				LuaNetworking:SendToPeers("cds_sync_camera_event",data_str)
+			end
+		end
+		
+		
+		
+		--[[
 		if state then
 			self:_send_net_event(self._NET_EVENTS.camera_enabled_state_off)
 		else
 			self:_send_net_event(self._NET_EVENTS.camera_enabled_state_on)
 		end
+		--]]
 	end
 end)
 
@@ -37,9 +75,9 @@ Hooks:OverrideFunction(SecurityCamera,"sync_net_event",function(self,event_id)
 
 	-- modded changes begin
 	if event_id == net_events.camera_enabled_state_on then
-		self:set_update_enabled(true)
+		self:set_detection_enabled(true)
 	elseif event_id == net_events.camera_enabled_state_off then
-		self:set_update_enabled(false)
+		self:set_detection_enabled(false)
 	-- modded changes end
 	elseif net_events.suspicion_1 <= event_id and event_id <= net_events.suspicion_6 then
 		local suspicion_lvl = (event_id - net_events.suspicion_1 + 1) / 6
@@ -62,12 +100,41 @@ Hooks:OverrideFunction(SecurityCamera,"sync_net_event",function(self,event_id)
 	end
 end)
 
-do return end -- needs testing
+	--somethig in this crashes, probably attention
+	--[[
+function SecurityCamera:_upd_sound(unit, t)
+	if self._alarm_sound then
+		return
+	end
 
+	local suspicion_level = self._suspicion
 
+	for u_key, attention_info in pairs(self._detected_attention_objects) do
+		if AIAttentionObject.REACT_SCARED <= attention_info.reaction then
+			if attention_info.identified then
+				self:_sound_the_alarm(attention_info.unit)
+
+				return
+			elseif not suspicion_level or suspicion_level < attention_info.notice_progress then
+				suspicion_level = attention_info.notice_progress
+			end
+		end
+	end
+
+	if not suspicion_level then
+		self:_set_suspicion_sound(0)
+		self:_stop_all_sounds()
+
+		return
+	end
+
+	self:_set_suspicion_sound(suspicion_level)
+end
+
+--]]
+	
 Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
 	self:_update_tape_loop_restarting(unit, t, dt)
-	
 	
 	-- enable clientside detection for security cameras
 --	if not Network:is_server() then
@@ -83,6 +150,10 @@ Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
 
 	self:_upd_sound(unit, t)
 end)
+
+do return end -- needs testing
+
+
 
 -- figure out what verified and identified are- log to tracker
 -- check attention object with the same conditions to prevent serverside detection from being active on players
