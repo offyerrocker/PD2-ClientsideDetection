@@ -39,7 +39,7 @@ Hooks:PostHook(SecurityCamera,"set_detection_enabled","clientsidedetection_setca
 				return string.format("%i",value)
 			end
 			
-			local id = unit:id()
+			local id = self._unit:id()
 			if id ~= -1 then
 				local div_char = "|"
 				local data_str = (
