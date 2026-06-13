@@ -1,7 +1,7 @@
 
 Hooks:Add("NetworkReceivedData", "cds_NetworkReceivedData", function(sender, message, body)
 	if message == "cds_sync_camera_event" then
-		local data = string.split(body)
+		local data = string.split(body,"|")
 		
 		local detection_delay_min = data[8] and tonumber(data[8])
 		local detection_delay_max = data[9] and tonumber(data[9])
