@@ -23,6 +23,7 @@ SecurityCamera._NET_EVENTS = {
 }
 
 Hooks:PostHook(SecurityCamera,"set_detection_enabled","clientsidedetection_setcameraupdateenabled",function(self,state,settings,mission_element)
+	self._cd_detection_enabled = state
 	if Network:is_server() then
 		if settings then 
 			-- serialize and send detection values
@@ -150,6 +151,18 @@ Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
 
 	self:_upd_sound(unit, t)
 end)
+
+Hooks:PostHook(SecurityCamera,"save","clientsidedetection_serializecamera",function(self,data)
+	data._cd_detection_enabled = self._cd_detection_enabled
+end)
+
+Hooks:PostHook(SecurityCamera,"load","clientsidedetection_deserializecamera",function(self,data)
+	if data._cd_detection_enabled then
+		self:set_detection_enabled(data._cd_detection_enabled)
+	end
+end)
+
+
 
 do return end -- needs testing
 
