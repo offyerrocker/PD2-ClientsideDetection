@@ -1,6 +1,5 @@
--- currently:
--- on the host side, cameras detect host but not clients
--- on the client side, cameras do not detect anything
+-- despite the name, this is used for both client and host
+-- (i'll fix it later)
 
 SecurityCamera._NET_EVENTS = ClientsideDetection.SECURITYCAMERA_NETEVENTS
 

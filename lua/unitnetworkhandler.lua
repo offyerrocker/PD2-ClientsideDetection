@@ -1,3 +1,4 @@
+-- from host, sync camera detection settings to clients
 function UnitNetworkHandler:sync_set_camera_detection_enabled(unit,state,str_settings,rpc)
 	if not self._verify_sender(rpc) or not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return

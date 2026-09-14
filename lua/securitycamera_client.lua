@@ -1,3 +1,11 @@
+-- THIS IS NOT USED!
+-- i'm keeping it around for reference though
+
+
+
+
+
+
 -- this is the clientside version only;
 -- although both should function for detection purposes,
 -- hostside is also responsible for mission scripts, so they shouldn't use the same base
