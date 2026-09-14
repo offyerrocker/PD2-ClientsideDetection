@@ -44,7 +44,7 @@
 		},
 		{
 			"hook_id" : "lib/units/props/securitycamera",
-			"script_path" : "lua/securitycamera.lua"
+			"script_path" : "lua/securitycamera_host.lua"
 		},
 		{
 			"hook_id" : "lib/units/enemies/cop/copbrain",
