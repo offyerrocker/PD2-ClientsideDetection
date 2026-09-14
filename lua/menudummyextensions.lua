@@ -1,1 +1,1 @@
-SecurityCamera = ClientsideDetection:require("securitycamera_client")
+--SecurityCamera = ClientsideDetection:require("securitycamera_client")

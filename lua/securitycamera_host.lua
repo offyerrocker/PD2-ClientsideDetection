@@ -28,7 +28,72 @@ Hooks:PostHook(SecurityCamera,"save","clientsidedetection_serializecamera",funct
 	data._cd_detection_state = self._cd_detection_state
 end)
 
+Hooks:PostHook(SecurityCamera,"load","clientsidedetection_deserializecamera",function(self,data)
+	if data._cd_detection_state then
+		self:set_detection_enabled(data._cd_detection_state.state,data._cd_detection_state.settings)
+	end
+end)
+
 Hooks:OverrideFunction(SecurityCamera,"sync_net_event",ClientsideDetection.camera_sync_net_event)
+
+Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
+	self:_update_tape_loop_restarting(unit, t, dt)
+	
+	-- enable clientside detection for security cameras
+--	if not Network:is_server() then
+--		return
+--	end
+
+	if managers.groupai:state():is_ecm_jammer_active("camera") or self._tape_loop_expired_clbk_id or self._tape_loop_restarting_t then
+		self:_destroy_all_detected_attention_object_data()
+		self:_stop_all_sounds()
+	else
+		self:_upd_detection(t)
+	end
+
+	self:_upd_sound(unit, t)
+end)
+
+-- don't disable update extension as client
+--[[
+Hooks:OverrideFunction(SecurityCamera,"_deactivate_tape_loop_restart",function(self)
+	if not self._tape_loop_restarting_t then
+		return
+	end
+
+	self._unit:sound_source():post_event("camera_wrong_image_outro_end")
+
+	self._tape_loop_restarting_t = nil
+
+	if not Network:is_server() then
+		self:set_update_enabled(false)
+	end
+
+	if self._tape_loop_active_contour then
+		self._tape_loop_active_contour = nil
+
+		self._unit:contour():remove("mark_unit_friendly")
+	end
+end)
+
+Hooks:OverrideFunction(SecurityCamera,"_activate_tape_loop_restart",function(self,restart_t)
+	if not managers.groupai:state():whisper_mode() then
+		if self._camera_wrong_image_sound then
+			self._camera_wrong_image_sound:stop()
+		end
+
+		return
+	end
+
+	self._unit:sound_source():post_event("camera_wrong_image_outro")
+
+	self._tape_loop_restarting_t = Application:time() + restart_t
+
+	if not Network:is_server() then
+		self:set_update_enabled(true)
+	end
+end)
+--]]
 
 do return end
 
@@ -65,34 +130,7 @@ function SecurityCamera:_upd_sound(unit, t)
 end
 
 --]]
-	
-Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
-	self:_update_tape_loop_restarting(unit, t, dt)
-	
-	-- enable clientside detection for security cameras
---	if not Network:is_server() then
---		return
---	end
 
-	if managers.groupai:state():is_ecm_jammer_active("camera") or self._tape_loop_expired_clbk_id or self._tape_loop_restarting_t then
-		self:_destroy_all_detected_attention_object_data()
-		self:_stop_all_sounds()
-	else
-		self:_upd_detection(t)
-	end
-
-	self:_upd_sound(unit, t)
-end)
-
-Hooks:PostHook(SecurityCamera,"save","clientsidedetection_serializecamera",function(self,data)
-	data._cd_detection_enabled = self._cd_detection_enabled
-end)
-
-Hooks:PostHook(SecurityCamera,"load","clientsidedetection_deserializecamera",function(self,data)
-	if data._cd_detection_enabled then
-		self:set_detection_enabled(data._cd_detection_enabled)
-	end
-end)
 
 
 
