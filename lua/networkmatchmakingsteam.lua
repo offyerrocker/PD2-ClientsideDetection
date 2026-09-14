@@ -1,6 +1,7 @@
 --this file is responsible for making sure that only lobbies with this mod installed are compatible
 
-local version = 4
+local mod = BLT.Mods:GetModByName("Clientside Detection Standalone")
+local version = mod and mod:GetVersion() or 1
 
 _G.CLIENTSIDE_DETECTION_ORIG_MM_KEY = _G.CLIENTSIDE_DETECTION_ORIG_MM_KEY or NetworkMatchMakingSTEAM._BUILD_SEARCH_INTEREST_KEY
 

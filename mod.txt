@@ -19,7 +19,7 @@
 			"script_path" : "lua/unitnetworkhandler.lua"
 		},
 		{
-			"hook_id" : "lib/tweak_data/attentiontweakdata",
+			"DISABLED_hook_id" : "lib/tweak_data/attentiontweakdata",
 			"script_path" : "lua/attentiontweakdata.lua"
 		},
 		{
@@ -75,11 +75,11 @@
 			"script_path" : "lua/menudummyextensions.lua"
 		},
 		{
-			"hook_id" : "lib/managers/mission/elementaccesscamera",
+			"DISABLED_hook_id" : "lib/managers/mission/elementaccesscamera",
 			"script_path" : "lua/elementaccesscamera.lua"
 		},
 		{
-			"hook_id" : "lib/units/vehicles/vehicledrivingext",
+			"DISABLED_hook_id" : "lib/units/vehicles/vehicledrivingext",
 			"script_path" : "lua/vehicledrivingext.lua"
 		}
 	]
