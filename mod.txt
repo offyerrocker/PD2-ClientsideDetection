@@ -71,12 +71,16 @@
 			"script_path" : "lua/networkmatchmakingsteam.lua"
 		},
 		{
-			"hook_id" : "lib/units/menudummyextensions",
+			"DISABLED_hook_id" : "lib/units/menudummyextensions",
 			"script_path" : "lua/menudummyextensions.lua"
 		},
 		{
 			"hook_id" : "lib/managers/mission/elementaccesscamera",
 			"script_path" : "lua/elementaccesscamera.lua"
+		},
+		{
+			"hook_id" : "lib/units/vehicles/vehicledrivingext",
+			"script_path" : "lua/vehicledrivingext.lua"
 		}
 	]
 }
