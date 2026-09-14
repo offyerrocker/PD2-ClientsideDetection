@@ -135,6 +135,7 @@ end
 --]]
 	
 Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
+	Console:SetTracker("cam update " .. string.format("%0.2f",t),1)
 	self:_update_tape_loop_restarting(unit, t, dt)
 	
 	-- enable clientside detection for security cameras

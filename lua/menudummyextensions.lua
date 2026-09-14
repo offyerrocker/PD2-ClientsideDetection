@@ -1,0 +1,1 @@
+SecurityCamera = ClientsideDetection:require("class_securitycamera")
