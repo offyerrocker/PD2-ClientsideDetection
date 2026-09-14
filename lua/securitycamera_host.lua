@@ -8,6 +8,13 @@ SecurityCamera._NET_EVENTS = ClientsideDetection.SECURITYCAMERA_NETEVENTS
 --	local settings = str_settings and json.decode(str_settings)
 --end
 
+
+-- custom func
+function SecurityCamera:send_request_alarm_start()
+	managers.network:session():send_to_host("sync_unit_event_id_16", self._unit, "base", self._NET_EVENTS.request_alarm_start)
+end
+
+
 Hooks:PostHook(SecurityCamera,"set_detection_enabled","clientsidedetection_setcameraupdateenabled",function(self,state,settings,mission_element)
 	-- don't bother syncing mission element;
 	-- since the detection result will be synced 
@@ -54,9 +61,211 @@ Hooks:OverrideFunction(SecurityCamera,"update",function(self,unit,t,dt)
 	self:_upd_sound(unit, t)
 end)
 
+
+-- sync client alarm to host
+Hooks:OverrideFunction(SecurityCamera,"_upd_sound",function(self,unit,t)
+	if self._alarm_sound then
+		return
+	end
+
+	local suspicion_level = self._suspicion
+
+	for u_key, attention_info in pairs(self._detected_attention_objects) do
+		if AIAttentionObject.REACT_SCARED <= attention_info.reaction then
+			if attention_info.identified then
+				self:_sound_the_alarm(attention_info.unit)
+				if not Network:is_server() then
+					self:send_request_alarm_start()
+				end
+				
+				return
+			elseif not suspicion_level or suspicion_level < attention_info.notice_progress then
+				suspicion_level = attention_info.notice_progress
+			end
+		end
+	end
+
+	if not suspicion_level then
+		self:_set_suspicion_sound(0)
+		self:_stop_all_sounds()
+
+		return
+	end
+
+	self:_set_suspicion_sound(suspicion_level)
+end)
+
+
+Hooks:OverrideFunction(SecurityCamera,"_upd_suspicion",function(self,t)
+	local function _exit_func(attention_data)
+		attention_data.unit:movement():on_uncovered(self._unit)
+		self:_sound_the_alarm(attention_data.unit)
+		if not Network:is_server() then
+			self:send_request_alarm_start()
+		end
+	end
+
+	local max_suspicion = 0
+
+	for u_key, attention_data in pairs(self._detected_attention_objects) do
+		if attention_data.identified and attention_data.reaction == AIAttentionObject.REACT_SUSPICIOUS then
+			if not attention_data.verified then
+				if attention_data.uncover_progress then
+					local dt = t - attention_data.last_suspicion_t
+
+					attention_data.uncover_progress = attention_data.uncover_progress - dt
+
+					if attention_data.uncover_progress <= 0 then
+						attention_data.uncover_progress = nil
+						attention_data.last_suspicion_t = nil
+
+						attention_data.unit:movement():on_suspicion(self._unit, false)
+						managers.groupai:state():on_criminal_suspicion_progress(attention_data.unit, self._unit, false)
+					else
+						max_suspicion = math.max(max_suspicion, attention_data.uncover_progress)
+
+						attention_data.unit:movement():on_suspicion(self._unit, attention_data.uncover_progress)
+
+						attention_data.last_suspicion_t = t
+					end
+				end
+			else
+				local dis = attention_data.dis
+				local susp_settings = attention_data.unit:base():suspicion_settings()
+				local suspicion_range = self._suspicion_range
+				local uncover_range = 0
+				local max_range = self._range
+
+				if attention_data.settings.uncover_range and dis < math.min(max_range, uncover_range) * susp_settings.range_mul then
+					attention_data.unit:movement():on_suspicion(self._unit, true)
+					managers.groupai:state():on_criminal_suspicion_progress(attention_data.unit, self._unit, true)
+					managers.groupai:state():criminal_spotted(attention_data.unit)
+
+					max_suspicion = 1
+
+					_exit_func(attention_data)
+				elseif suspicion_range and dis < math.min(max_range, suspicion_range) * susp_settings.range_mul then
+					if attention_data.last_suspicion_t then
+						local dt = t - attention_data.last_suspicion_t
+						local range_max = (suspicion_range - uncover_range) * susp_settings.range_mul
+						local range_min = uncover_range
+						local mul = 1 - (dis - range_min) / range_max
+						local progress = dt * 0.5 * mul * susp_settings.buildup_mul
+
+						attention_data.uncover_progress = (attention_data.uncover_progress or 0) + progress
+						max_suspicion = math.max(max_suspicion, attention_data.uncover_progress)
+
+						if attention_data.uncover_progress < 1 then
+							attention_data.unit:movement():on_suspicion(self._unit, attention_data.uncover_progress)
+
+							attention_data.last_suspicion_t = t
+						else
+							attention_data.unit:movement():on_suspicion(self._unit, true)
+							managers.groupai:state():on_criminal_suspicion_progress(attention_data.unit, self._unit, true)
+							managers.groupai:state():criminal_spotted(attention_data.unit)
+							_exit_func(attention_data)
+						end
+					else
+						attention_data.uncover_progress = 0
+
+						managers.groupai:state():on_criminal_suspicion_progress(attention_data.unit, self._unit, 0)
+
+						attention_data.last_suspicion_t = t
+					end
+				elseif attention_data.uncover_progress and attention_data.last_suspicion_t then
+					local dt = t - attention_data.last_suspicion_t
+
+					attention_data.uncover_progress = attention_data.uncover_progress - dt
+
+					if attention_data.uncover_progress <= 0 then
+						attention_data.uncover_progress = nil
+						attention_data.last_suspicion_t = nil
+
+						attention_data.unit:movement():on_suspicion(self._unit, false)
+						managers.groupai:state():on_criminal_suspicion_progress(attention_data.unit, self._unit, false)
+					else
+						attention_data.last_suspicion_t = t
+						max_suspicion = math.max(max_suspicion, attention_data.uncover_progress)
+
+						attention_data.unit:movement():on_suspicion(self._unit, attention_data.uncover_progress)
+					end
+				end
+			end
+		end
+	end
+
+	self._suspicion = max_suspicion > 0 and max_suspicion
+end)
+
+--[[ Hooks:OverrideFunction(SecurityCamera,"_set_suspicion_sound",function(self,suspicion_level,sync)
+	if self._suspicion_sound_lvl == suspicion_level then
+		return
+	end
+
+	if not self._suspicion_sound then
+		self._suspicion_sound = self._unit:sound_source():post_event("camera_suspicious_signal")
+		self._suspicion_sound_lvl = 0
+	end
+
+	local pitch = suspicion_level >= self._suspicion_sound_lvl and 1 or 0.6
+
+	self._suspicion_sound_lvl = suspicion_level
+
+	self._unit:sound_source():set_rtpc("camera_suspicion_level_pitch", pitch)
+	self._unit:sound_source():set_rtpc("camera_suspicion_level", suspicion_level)
+
+	if Network:is_server() or sync then
+		local suspicion_lvl_sync = math.clamp(math.ceil(suspicion_level * 6), 1, 6)
+
+		if suspicion_lvl_sync ~= self._suspicion_lvl_sync then
+			self._suspicion_lvl_sync = suspicion_lvl_sync
+
+			local event_id = self._NET_EVENTS["suspicion_" .. tostring(suspicion_lvl_sync)]
+
+			self:_send_net_event(event_id)
+		end
+	end
+end)
+--]]
+
+--[[ function SecurityCamera:_sound_the_alarm(detected_unit)
+	if self._alarm_sound then
+		return
+	end
+
+	if Network:is_server() then
+		if self._mission_script_element then
+			self._mission_script_element:on_alarm(self._unit)
+		end
+
+		self:_send_net_event(self._NET_EVENTS.alarm_start)
+
+		self._call_police_clbk_id = "cam_call_cops" .. tostring(self._unit:key())
+
+		managers.enemy:add_delayed_clbk(self._call_police_clbk_id, callback(self, self, "clbk_call_the_police"), Application:time() + 7)
+
+		local reason_called = managers.groupai:state().analyse_giveaway("security_camera", detected_unit)
+
+		self._reason_called = managers.groupai:state():fetch_highest_giveaway(self._reason_called, reason_called)
+
+		self:_destroy_all_detected_attention_object_data()
+		self:set_detection_enabled(false, nil, nil)
+	else
+		-- self:send_request_alarm_start()
+	end
+
+	if self._suspicion_sound then
+		self._suspicion_sound = nil
+
+		self._unit:sound_source():post_event("camera_suspicious_signal_stop")
+	end
+
+	self._alarm_sound = self._unit:sound_source():post_event("camera_alarm_signal")
+end
+--]]
+
 -- don't disable update extension as client
---[[
-Hooks:OverrideFunction(SecurityCamera,"_deactivate_tape_loop_restart",function(self)
+--[[ Hooks:OverrideFunction(SecurityCamera,"_deactivate_tape_loop_restart",function(self)
 	if not self._tape_loop_restarting_t then
 		return
 	end
@@ -75,8 +284,10 @@ Hooks:OverrideFunction(SecurityCamera,"_deactivate_tape_loop_restart",function(s
 		self._unit:contour():remove("mark_unit_friendly")
 	end
 end)
+--]]
 
-Hooks:OverrideFunction(SecurityCamera,"_activate_tape_loop_restart",function(self,restart_t)
+
+--[[ Hooks:OverrideFunction(SecurityCamera,"_activate_tape_loop_restart",function(self,restart_t)
 	if not managers.groupai:state():whisper_mode() then
 		if self._camera_wrong_image_sound then
 			self._camera_wrong_image_sound:stop()
@@ -98,38 +309,7 @@ end)
 do return end
 
 
-	--somethig in this crashes, probably attention
-	--[[
-function SecurityCamera:_upd_sound(unit, t)
-	if self._alarm_sound then
-		return
-	end
 
-	local suspicion_level = self._suspicion
-
-	for u_key, attention_info in pairs(self._detected_attention_objects) do
-		if AIAttentionObject.REACT_SCARED <= attention_info.reaction then
-			if attention_info.identified then
-				self:_sound_the_alarm(attention_info.unit)
-
-				return
-			elseif not suspicion_level or suspicion_level < attention_info.notice_progress then
-				suspicion_level = attention_info.notice_progress
-			end
-		end
-	end
-
-	if not suspicion_level then
-		self:_set_suspicion_sound(0)
-		self:_stop_all_sounds()
-
-		return
-	end
-
-	self:_set_suspicion_sound(suspicion_level)
-end
-
---]]
 
 
 
