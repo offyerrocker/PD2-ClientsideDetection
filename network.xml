@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<tweaks>
+	<tweak version="2" name="settings/network" extension="network_settings">
+		<search>
+			<network/>
+			<rpc/>
+		</search>
+		<target mode="attach">
+			<message name="sync_set_camera_detection_enabled" delivery="ordered" receiver="unit" check="server_to_client">
+				<param type="unit" />	<!-- unit -->
+				<param type="bool" /> <!-- enabled state --> 
+				<param type="string" />  <!-- settings table (json serialized) -->
+			</message>
+		</target>
+	</tweak>
+	
+</tweaks>

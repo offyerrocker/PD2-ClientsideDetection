@@ -1,7 +1,31 @@
 ClientsideDetection = {
 	_modpath = ModPath,
-	_libs = {}
+	_libs = {},
+	SECURITYCAMERA_NETEVENTS = {
+--		camera_enabled_state_off = 15,
+--		camera_enabled_state_on = 14,
+		
+		set_detection_enabled_state = 14,
+		request_alarm_start = 15,
+		
+		-- below is vanilla
+		deactivate_tape_loop = 13,
+		request_start_tape_loop_2 = 12,
+		request_start_tape_loop_1 = 11,
+		start_tape_loop_2 = 10,
+		start_tape_loop_1 = 9,
+		suspicion_6 = 8,
+		suspicion_5 = 7,
+		suspicion_4 = 6,
+		suspicion_3 = 5,
+		suspicion_2 = 4,
+		suspicion_1 = 3,
+		alarm_start = 2,
+		sound_off = 1
+	}
 }
+
+
 function ClientsideDetection:require(_path)
 	local path = self._modpath .. "lua/" .. _path .. ".lua"
 	if self._libs[path] then
@@ -16,51 +40,32 @@ function ClientsideDetection:require(_path)
 end
 
 
+function ClientsideDetection.camera_sync_net_event(self,event_id)
+	local net_events = self._NET_EVENTS
 
-do return end
-require("lib/units/props/securitycamera")
-Hooks:Add("NetworkReceivedData", "cds_NetworkReceivedData", function(sender, message, body)
-	if message == "cds_sync_camera_event" then
-		Print("Received camera sync!",body)
-		local data = string.split(body,"|")
-		
-		local detection_delay_min = data[8] and tonumber(data[8])
-		local detection_delay_max = data[9] and tonumber(data[9])
-		local id = tonumber(data[1]) -- network id
-		
-		local message_id = tonumber(data[2])
-		local state
-		local settings = {
-			yaw = tonumber(data[2]),
-			pitch = tonumber(data[3]),
-			fov = tonumber(data[4]),
-			detection_range = tonumber(data[5]),
-			suspicion_range = tonumber(data[6]),
-			detection_delay = (detection_delay_min or detection_delay_max) and {
-				detection_delay_min,
-				detection_delay_max
-			} or nil
-		}
-		
-		if SecurityCamera._NET_EVENTS then
-			if message_id == SecurityCamera._NET_EVENTS.camera_enabled_state_on then
-				state = true
-			elseif message_id == SecurityCamera._NET_EVENTS.camera_enabled_state_off then
-				state = false
-			end
-		else
-			Print("NO NET EVENTS???",SecurityCamera)
-			state = true
-		end
-		
-		
-		for _,unit in pairs(SecurityCamera.cameras) do 
-			if unit:id() == id then
-				unit:base():set_detection_enabled(state,settings,nil)
-				Print("Found camera unit")
-				break
-			end
-		end
-		
+	-- modded changes begin
+	if event_id == net_events.set_detection_enabled_state then
+		self:set_detection_enabled(true)
+	elseif event_id == net_events.request_alarm_start then
+		self:_send_net_event(net_events.alarm_start)
+	-- modded changes end
+	elseif net_events.suspicion_1 <= event_id and event_id <= net_events.suspicion_6 then
+		local suspicion_lvl = (event_id - net_events.suspicion_1 + 1) / 6
+
+		self:_set_suspicion_sound(suspicion_lvl)
+	elseif event_id == net_events.sound_off then
+		self:_stop_all_sounds()
+	elseif event_id == net_events.alarm_start then
+		self:_sound_the_alarm()
+	elseif event_id == net_events.start_tape_loop_1 then
+		self:_start_tape_loop_by_upgrade_level(1)
+	elseif event_id == net_events.start_tape_loop_2 then
+		self:_start_tape_loop_by_upgrade_level(2)
+	elseif event_id == net_events.request_start_tape_loop_1 then
+		self:_request_start_tape_loop_by_upgrade_level(1)
+	elseif event_id == net_events.request_start_tape_loop_2 then
+		self:_request_start_tape_loop_by_upgrade_level(2)
+	elseif event_id == net_events.deactivate_tape_loop then
+		self:_deactivate_tape_loop()
 	end
-end)
+end
